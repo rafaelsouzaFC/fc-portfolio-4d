@@ -28,6 +28,17 @@
     '#qrFs{position:absolute;top:12px;right:12px;z-index:30;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:8px;border:0;background:#D7192A;color:#fff;font:600 14px/1 system-ui,"Segoe UI",Roboto,Arial,sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}'+
     '#qrFs:hover{background:#A8111F}#qrFs svg{width:18px;height:18px}'+
     '@media (max-width:700px){#qrFs{top:auto;bottom:12px;width:44px;height:44px;padding:0;justify-content:center}#qrFs span{display:none}}'+
+    /* sem rótulos sobre o modelo */
+    '#layer{display:none!important}'+
+    /* celular em pé: pede para virar na horizontal */
+    '#qrRot{display:none;position:fixed;inset:0;z-index:100;background:#1C252D;color:#F1F4F6;align-items:center;justify-content:center;text-align:center;padding:24px 16px;font:15px/1.45 system-ui,"Segoe UI",Roboto,Arial,sans-serif}'+
+    '@media (orientation:portrait) and (max-width:700px){body:not(.qr-vert) #qrRot{display:flex}}'+
+    '#qrRot svg{width:72px;height:72px;color:#D7192A;animation:qrTurn 2.4s ease-in-out infinite}'+
+    '@keyframes qrTurn{0%,25%{transform:rotate(0)}55%,100%{transform:rotate(-90deg)}}'+
+    '@media (prefers-reduced-motion:reduce){#qrRot svg{animation:none;transform:rotate(-90deg)}}'+
+    '#qrRot b{display:block;font-size:20px;margin:18px 0 6px}#qrRot p{margin:0 0 22px;color:#A3AFB9}'+
+    '#qrRot .go{display:inline-flex;align-items:center;height:48px;padding:0 22px;border-radius:8px;border:0;background:#D7192A;color:#fff;font:600 16px/1 inherit;cursor:pointer}'+
+    '#qrRot .vt{display:block;margin:18px auto 0;background:none;border:0;color:#A3AFB9;font:14px/1 inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}'+
     '</style>';
   var JS='<script>(function(){'+
     'var de=document.documentElement,req=de.requestFullscreen||de.webkitRequestFullscreen;'+
@@ -38,8 +49,18 @@
     'function init(){var v=document.getElementById("view");if(!v||!req)return;'+
       'var b=document.createElement("button");b.id="qrFs";b.type="button";v.appendChild(b);'+
       'var paint=function(){var on=fsEl();b.innerHTML=(on?ICO_OFF:ICO_ON)+"<span>"+(on?"Sair da tela cheia":"Tela cheia")+"</span>";b.setAttribute("aria-label",on?"Sair da tela cheia":"Tela cheia");};paint();'+
-      'b.onclick=function(){if(fsEl())ex.call(document);else req.call(de);};'+
+      'b.onclick=function(){if(fsEl())ex.call(document);else goFs();};'+
       'document.addEventListener("fullscreenchange",paint);document.addEventListener("webkitfullscreenchange",paint);}'+
+    /* tela cheia + trava na horizontal (Android); no iPhone só a rotação do aparelho */
+    'function goFs(){if(!req)return;try{var r=req.call(de);var lk=function(){try{if(screen.orientation&&screen.orientation.lock&&matchMedia("(max-width:900px),(max-height:500px)").matches)screen.orientation.lock("landscape").catch(function(){});}catch(e){}};if(r&&r.then)r.then(lk).catch(function(){});else lk();}catch(e){}}'+
+    'function rot(){var o=document.createElement("div");o.id="qrRot";'+
+      'o.innerHTML=\'<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18.5h2"/></svg>\'+'+
+        '\'<b>Gire o celular na horizontal</b><p>O passo a passo da obra fica melhor com o celular deitado.</p>\'+'+
+        '(req&&screen.orientation&&screen.orientation.lock?\'<button class="go" type="button">Abrir na horizontal</button>\':"")+'+
+        '\'<button class="vt" type="button">Continuar na vertical</button></div>\';'+
+      'document.body.appendChild(o);'+
+      'o.addEventListener("click",function(e){if(e.target.closest(".go"))goFs();else if(e.target.closest(".vt"))document.body.classList.add("qr-vert");});}'+
+    'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",rot);else rot();'+
     'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();'+
     /* bloqueia atalhos de teclado do editor; setas continuam navegando */
     'document.addEventListener("keydown",function(e){if(!/^(Arrow|Escape|Tab)/.test(e.key))e.stopImmediatePropagation();},true);'+
@@ -52,13 +73,19 @@
     var D=JSON.parse(doc.getElementById('hub-data').textContent);
     var p=D.projects.filter(function(x){return x.id===PROJ;})[0];
     if(!p||!p.html)return fail();
-    /* abre no passo do cronograma correspondente à data de hoje: o último passo já iniciado */
+    /* abre no passo do cronograma da data de hoje: a primeira etapa em andamento;
+       sem etapa em andamento, o último passo já iniciado */
     try{
       var pd=new DOMParser().parseFromString(p.html,'text/html').getElementById('plan-data');
       var steps=JSON.parse(pd.textContent).steps||[];
       var n=new Date(),hoje=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2);
       var idx=0;
-      steps.forEach(function(s,i){if(s.start&&s.start<=hoje)idx=i;});
+      var ativo=-1;
+      steps.forEach(function(s,i){
+        if(s.start&&s.start<=hoje)idx=i;
+        if(ativo<0&&i>0&&s.start&&s.start<=hoje&&(s.end||s.start)>=hoje)ativo=i;
+      });
+      if(ativo>=0)idx=ativo;
       sessionStorage.setItem(p.stepKey,String(idx));
     }catch(e){}
     var html=p.html.replace(/var infoMin=[^;]*;/,'var infoMin=true;').replace(/<head>/i,'<head>\n'+SHIM).replace(/<\/head>/i,CSS+'\n</head>').replace(/<\/body>(?![\s\S]*<\/body>)/i,JS+'\n</body>');
