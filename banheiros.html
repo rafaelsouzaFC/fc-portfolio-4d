@@ -28,6 +28,8 @@
     '#root{grid-template-rows:minmax(0,1fr)!important;height:100dvh!important}'+
     'main.work{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;height:100%!important}'+
     '.center{height:100%!important}'+
+    /* o 3D ocupa toda a altura que sobra; a navegação nunca é empurrada para fora */
+    '#view{min-height:0!important;flex:1 1 auto!important;height:auto!important}#stepnav{flex:none!important}'+
     '#qrFs{position:absolute;top:12px;right:12px;z-index:30;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:8px;border:0;background:#D7192A;color:#fff;font:600 14px/1 system-ui,"Segoe UI",Roboto,Arial,sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}'+
     '#qrFs:hover{background:#A8111F}#qrFs svg{width:18px;height:18px}'+
     '@media (max-width:700px){#qrFs{top:auto;bottom:12px;width:44px;height:44px;padding:0;justify-content:center}#qrFs span{display:none}}'+
