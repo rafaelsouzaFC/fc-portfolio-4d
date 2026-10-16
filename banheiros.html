@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reforma dos sanitários do mezanino | 4D</title>
+<style>
+  html,body{margin:0;height:100%;background:#EEF1F3;color:#1C252D;font:15px/1.45 system-ui,"Segoe UI",Roboto,Arial,sans-serif}
+  @media (prefers-color-scheme:dark){html,body{background:#141A1F;color:#E7ECF0}}
+  .ld{height:100%;display:grid;place-items:center;text-align:center;padding:0 16px}
+  .ld b{display:block;font-size:20px;margin-bottom:6px}
+  .ld a{color:#D7192A}
+</style>
+</head>
+<body>
+<div class="ld" id="ld"><div><b>Reforma dos sanitários do mezanino</b><span id="msg">Carregando o modelo 3D…</span></div></div>
+<script>
+/* Abre só o visualizador 4D do projeto "mez", lendo o HTML embutido no portfólio. */
+(function(){
+  var PROJ='mez';
+  var SHIM='<script>try{Object.defineProperty(window,"claude",{configurable:true,value:{use:function(){return Promise.resolve(null);}}});}catch(e){}<\/script>';
+  function fail(){
+    document.getElementById('msg').innerHTML='Não foi possível carregar. <a href="fc-portfolio-4d.html#p='+PROJ+'">Abrir pelo portfólio</a>';
+  }
+  fetch('fc-portfolio-4d.html',{cache:'no-cache'}).then(function(r){return r.text();}).then(function(t){
+    var doc=new DOMParser().parseFromString(t,'text/html');
+    var D=JSON.parse(doc.getElementById('hub-data').textContent);
+    var p=D.projects.filter(function(x){return x.id===PROJ;})[0];
+    if(!p||!p.html)return fail();
+    var html=p.html.replace(/<head>/i,'<head>\n'+SHIM);
+    document.open();document.write(html);document.close();
+  }).catch(fail);
+})();
+</script>
+</body>
+</html>
