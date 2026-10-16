@@ -27,6 +27,7 @@
     '.center{height:100%!important}'+
     '#qrFs{position:absolute;top:12px;right:12px;z-index:30;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:8px;border:0;background:#D7192A;color:#fff;font:600 14px/1 system-ui,"Segoe UI",Roboto,Arial,sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}'+
     '#qrFs:hover{background:#A8111F}#qrFs svg{width:18px;height:18px}'+
+    '@media (max-width:700px){#qrFs{top:auto;bottom:12px;width:44px;height:44px;padding:0;justify-content:center}#qrFs span{display:none}}'+
     '</style>';
   var JS='<script>(function(){'+
     'var de=document.documentElement,req=de.requestFullscreen||de.webkitRequestFullscreen;'+
@@ -36,7 +37,7 @@
     'var ICO_OFF=\'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>\';'+
     'function init(){var v=document.getElementById("view");if(!v||!req)return;'+
       'var b=document.createElement("button");b.id="qrFs";b.type="button";v.appendChild(b);'+
-      'var paint=function(){b.innerHTML=fsEl()?ICO_OFF+"Sair da tela cheia":ICO_ON+"Tela cheia";};paint();'+
+      'var paint=function(){var on=fsEl();b.innerHTML=(on?ICO_OFF:ICO_ON)+"<span>"+(on?"Sair da tela cheia":"Tela cheia")+"</span>";b.setAttribute("aria-label",on?"Sair da tela cheia":"Tela cheia");};paint();'+
       'b.onclick=function(){if(fsEl())ex.call(document);else req.call(de);};'+
       'document.addEventListener("fullscreenchange",paint);document.addEventListener("webkitfullscreenchange",paint);}'+
     'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();'+
