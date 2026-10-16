@@ -52,7 +52,16 @@
     var D=JSON.parse(doc.getElementById('hub-data').textContent);
     var p=D.projects.filter(function(x){return x.id===PROJ;})[0];
     if(!p||!p.html)return fail();
-    var html=p.html.replace(/<head>/i,'<head>\n'+SHIM).replace(/<\/head>/i,CSS+'\n</head>').replace(/<\/body>(?![\s\S]*<\/body>)/i,JS+'\n</body>');
+    /* abre no passo do cronograma correspondente à data de hoje: o último passo já iniciado */
+    try{
+      var pd=new DOMParser().parseFromString(p.html,'text/html').getElementById('plan-data');
+      var steps=JSON.parse(pd.textContent).steps||[];
+      var n=new Date(),hoje=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2);
+      var idx=0;
+      steps.forEach(function(s,i){if(s.start&&s.start<=hoje)idx=i;});
+      sessionStorage.setItem(p.stepKey,String(idx));
+    }catch(e){}
+    var html=p.html.replace(/var infoMin=[^;]*;/,'var infoMin=true;').replace(/<head>/i,'<head>\n'+SHIM).replace(/<\/head>/i,CSS+'\n</head>').replace(/<\/body>(?![\s\S]*<\/body>)/i,JS+'\n</body>');
     if(html.indexOf('id="qrFs"')<0&&html.indexOf('"qrFs"')<0)html+=JS;
     document.open();document.write(html);document.close();
   }).catch(fail);
