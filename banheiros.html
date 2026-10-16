@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Obra WCs">
 <title>Reforma dos sanitários do mezanino | 4D</title>
 <style>
   html,body{margin:0;height:100%;background:#EEF1F3;color:#1C252D;font:15px/1.45 system-ui,"Segoe UI",Roboto,Arial,sans-serif}
@@ -18,7 +21,7 @@
 /* Abre só o visualizador 4D do projeto "mez", lendo o HTML embutido no portfólio. */
 (function(){
   var PROJ='mez';
-  var SHIM='<script>try{Object.defineProperty(window,"claude",{configurable:true,value:{use:function(){return Promise.resolve(null);}}});}catch(e){}<\/script>';
+  var SHIM='<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Obra WCs"><script>try{Object.defineProperty(window,"claude",{configurable:true,value:{use:function(){return Promise.resolve(null);}}});}catch(e){}<\/script>';
   /* modo QR: só o 3D, o cartão do passo e a navegação Voltar/Avançar */
   var CSS='<style id="qr-css">'+
     'header.top,aside.steps,aside#detail,footer.tl,.vtools,#layerbar,#layerleg{display:none!important}'+
@@ -30,6 +33,15 @@
     '@media (max-width:700px){#qrFs{top:auto;bottom:12px;width:44px;height:44px;padding:0;justify-content:center}#qrFs span{display:none}}'+
     /* sem rótulos sobre o modelo */
     '#layer{display:none!important}'+
+    /* passo atual como texto curto, sem caixa */
+    '#info{background:transparent!important;box-shadow:none!important;border:0!important;padding:0!important;top:10px!important;left:12px!important;width:auto!important;max-width:min(60%,440px)!important;height:auto!important;max-height:none!important;pointer-events:none;backdrop-filter:none!important}'+
+    '#info .i-min,#info .i-body{display:none!important}#info .i-head{padding:0!important;margin:0!important;border:0!important;background:none!important}'+
+    '#info h2{font-size:15px!important;line-height:1.2!important;margin:2px 0 0!important;padding:0!important}#info .d-meta{font-size:12px!important}'+
+    '#info,#info *{text-shadow:0 0 2px var(--paper),0 0 6px var(--paper),0 0 10px var(--paper)}'+
+    /* celular deitado: navegação compacta para sobrar altura para o 3D */
+    '@media (max-height:500px){#stepnav{padding:4px 10px!important;min-height:0!important;gap:8px!important}#stepnav .nav-t{display:none!important}#stepnav .nav-b{height:34px!important;min-height:0!important}#qrFs{top:8px;right:8px;height:34px}}'+
+    '#qrTip{position:absolute;top:56px;right:12px;z-index:31;max-width:260px;padding:10px 12px;border-radius:8px;background:#1C252D;color:#F1F4F6;font:13px/1.4 system-ui,"Segoe UI",Roboto,Arial,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.3)}'+
+    '@media (max-width:700px){#qrTip{top:auto;bottom:64px}}'+
     /* celular em pé: pede para virar na horizontal */
     '#qrRot{display:none;position:fixed;inset:0;z-index:100;background:#1C252D;color:#F1F4F6;align-items:center;justify-content:center;text-align:center;padding:24px 16px;font:15px/1.45 system-ui,"Segoe UI",Roboto,Arial,sans-serif}'+
     '@media (orientation:portrait) and (max-width:700px){body:not(.qr-vert) #qrRot{display:flex}}'+
@@ -46,11 +58,16 @@
     'var ex=document.exitFullscreen||document.webkitExitFullscreen;'+
     'var ICO_ON=\'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>\';'+
     'var ICO_OFF=\'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>\';'+
-    'function init(){var v=document.getElementById("view");if(!v||!req)return;'+
+    'function init(){var v=document.getElementById("view");if(!v)return;'+
       'var b=document.createElement("button");b.id="qrFs";b.type="button";v.appendChild(b);'+
       'var paint=function(){var on=fsEl();b.innerHTML=(on?ICO_OFF:ICO_ON)+"<span>"+(on?"Sair da tela cheia":"Tela cheia")+"</span>";b.setAttribute("aria-label",on?"Sair da tela cheia":"Tela cheia");};paint();'+
-      'b.onclick=function(){if(fsEl())ex.call(document);else goFs();};'+
+      /* iPhone não tem tela cheia para páginas: explica o atalho da Tela de Início */
+      'var tip=function(){var t=document.getElementById("qrTip");if(t){t.remove();return;}t=document.createElement("div");t.id="qrTip";'+
+        't.textContent="No iPhone: toque em Compartilhar e depois em Adicionar à Tela de Início. Abrindo pelo ícone, o 3D ocupa a tela toda.";v.appendChild(t);setTimeout(function(){if(t.parentNode)t.remove();},7000);};'+
+      'b.onclick=function(){if(!req)tip();else if(fsEl())ex.call(document);else goFs();};'+
       'document.addEventListener("fullscreenchange",paint);document.addEventListener("webkitfullscreenchange",paint);}'+
+    /* ao girar o celular, refaz o enquadramento do passo para o novo formato da tela */
+    'var rt,lw=innerWidth,lh=innerHeight;addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(function(){if(Math.abs(innerWidth-lw)<40&&Math.abs(innerHeight-lh)<120)return;lw=innerWidth;lh=innerHeight;var s=document.getElementById("vStep");if(s)s.click();},300);});'+
     /* tela cheia + trava na horizontal (Android); no iPhone só a rotação do aparelho */
     'function goFs(){if(!req)return;try{var r=req.call(de);var lk=function(){try{if(screen.orientation&&screen.orientation.lock&&matchMedia("(max-width:900px),(max-height:500px)").matches)screen.orientation.lock("landscape").catch(function(){});}catch(e){}};if(r&&r.then)r.then(lk).catch(function(){});else lk();}catch(e){}}'+
     'function rot(){var o=document.createElement("div");o.id="qrRot";'+
